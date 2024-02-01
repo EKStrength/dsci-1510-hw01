@@ -7,6 +7,8 @@ output:
     tufte_variant: "envisioned"
     highlight: pygments
 link-citations: true
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r include = FALSE}
@@ -133,7 +135,57 @@ Let's de-construct this code:
 🧶 ✅ ⬆️ Knit, *commit, and push your changes to GitHub with an appropriate commit message. Make sure to commit and push all changed files so that your Git pane is cleared up afterwards.*
 
 4.  Use a single pipeline to identity the neighbourhoods with the top five median listing prices. Then, in another pipeline filter the data for these five neighbourhoods and make ridge plots of the distributions of listing prices in these five neighbourhoods. In a third pipeline calculate the minimum, mean, median, standard deviation, IQR, and maximum listing price in each of these neighbourhoods. Use the visualisation and the summary statistics to describe the distribution of listing prices in the neighbourhoods. (Your answer will include three pipelines, one of which ends in a visualisation, and a narrative.)
+
+```{r}
+edibnb %>%
+group_by(neighbourhood) %>%
+summarise(median_price = median(price, na.rm=TRUE)) %>%
+arrange(desc(median_price)) %>%
+slice(1:5)
+```
+
+```{r}
+library(ggplot2)
+library(ggridges)
+
+
+hoods <- c("New Town", "Old Town", "West End", "Stockbridge", "Bruntsfield")
+
+  
+edibnb %>%
+filter(neighbourhood %in% hoods) %>%
+ggplot( aes(x = price, y = neighbourhood, fill = neighbourhood)) +
+geom_density_ridges()
+```
+
+```{R}
+edibnb %>%
+filter(neighbourhood %in% hoods) %>% 
+  group_by(neighbourhood) %>%
+summarise( min = min(price, na.rm=T), 
+                    median = median(price, na.rm=T), 
+                   stand.dev = sd(price, na.rm=T), 
+                   IQR = IQR(price, na.rm=T), 
+                   max = max(price, na.rm=T))
+
+#Looking over the ridge plots and the summary statistics, it is apparent that Old Town has the largest number of expensive Airbnbs comparatively. The cheapest neighborhood on average is definitely Bruntsfield, with a minimum price of $10 and a median price of $80. All of the neighborhoods contain very expensive Airbnbs with most of them containing houses that cost $900 or more per night, except Stockbridge at a maximum of $750. Interestingly, Stockbridge has both the highest minimum per night(21) and the lowest max per night(750).
+
+
+```
+
+
 5.  Create a visualization that will help you compare the distribution of review scores (`review_scores_rating`) across neighbourhoods. You get to decide what type of visualisation to create and there is more than one correct answer! In your answer, include a brief interpretation of how Airbnb guests rate properties in general and how the neighbourhoods compare to each other in terms of their ratings.
+
+```{r}
+ggplot(data = edibnb,
+       mapping = aes(x = review_scores_rating,
+                     y = neighbourhood)) + 
+  geom_point() +
+  labs(title = "Distribution of Review Scores")
+#From the data visualization I created, it appears that most people give their Airbnb a good rating, at least an 80/100 or higher. Although not everyone does, with many people giving a rating of 70/100 or 60/100 and some people even rating their Airbnb a 20/100. Some of the best neighborhoods according to reviews, appear to be Morningside, Marchmont, and Stockbridge since they mostly have reviews above 60/100. The worst-reviewed neighborhoods appear to be Old Town, Leith, and Newington because they all have many reviews below the 60/100 mark. The Airbnbs not classified to a particular neighborhood (NA) have a pretty extreme range of reviews with many being below 60/100, but many also being 80/100 or higher. 
+```
+
+
 
 🧶 ✅ ⬆️ Knit, *commit, and push your changes to GitHub with an appropriate commit message. Make sure to commit and push all changed files so that your Git pane is cleared up afterwards and review the md document on GitHub to make sure you're happy with the final state of your work.*
 
